@@ -1,0 +1,322 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlserver"
+  url      = env("DATABASE_URL")
+}
+
+model Autor {
+  AutorID  Int     @id(map: "PK__Autor__F58AE9094B57A103") @default(autoincrement())
+  Nombre   String? @db.VarChar(100)
+  Apellido String? @db.VarChar(100)
+}
+
+model mc001_tipos_inventario {
+  mc001_rowid                Int            @id(map: "mc001_tipos_inventario_PK") @default(autoincrement())
+  mc001_empresa              Int
+  mc001_id                   String         @db.VarChar(10)
+  mc001_descripcion          String?        @db.VarChar(80)
+  mc001_ultima_actualizacion DateTime?      @db.DateTime
+  mg001_empresas             mg001_empresas @relation(fields: [mc001_empresa], references: [mg001_id], onUpdate: NoAction, map: "mc001_tipos_inventario_mg001_empresas_FK")
+}
+
+model mc002_bodegas {
+  mc002_rowid                Int            @id(map: "mc002_bodegas_PK") @default(autoincrement())
+  mc002_empresa              Int
+  mc002_id                   String?        @db.VarChar(10)
+  mc002_descripcion          String?        @db.VarChar(80)
+  mc002_estado               Int?
+  mc002_ultima_actualizacion DateTime?      @db.DateTime
+  mg001_empresas             mg001_empresas @relation(fields: [mc002_empresa], references: [mg001_id], onUpdate: NoAction, map: "mc002_bodegas_mg001_empresas_FK")
+}
+
+model mc003_unidades_medida {
+  mc003_empresa              Int
+  mc003_id                   String            @db.VarChar(5)
+  mc003_numero_decimales     Int?              @db.SmallInt
+  mc003_estado               Int?
+  mc003_ultima_actualizacion DateTime?         @db.DateTime
+  mg001_empresas             mg001_empresas    @relation(fields: [mc003_empresa], references: [mg001_id], onUpdate: NoAction, map: "mc003_unidades_medida_mg001_empresas_FK")
+  mc006_productos            mc006_productos[]
+
+  @@id([mc003_empresa, mc003_id], map: "mc003_unidades_medida_PK")
+}
+
+model mc004_categoria {
+  mc004_empresa              Int
+  mc004_id                   String               @db.VarChar(5)
+  mc004_descripcion          String?              @db.VarChar(50)
+  mc004_estado               Int?
+  mc004_ultima_actualizacion DateTime?            @db.DateTime
+  mg001_empresas             mg001_empresas       @relation(fields: [mc004_empresa], references: [mg001_id], onUpdate: NoAction, map: "TABLE_24_mg001_empresas_FK")
+  mc005_subcategoria         mc005_subcategoria[]
+
+  @@id([mc004_empresa, mc004_id], map: "mc004_categoria_PK")
+}
+
+model mc005_subcategoria {
+  mc005_empresa              Int
+  mc005_id_categori          String          @db.VarChar(5)
+  mc005_id                   String          @db.VarChar(10)
+  mc005_descripcion          String?         @db.VarChar(80)
+  mc005_estado               Int?
+  mc005_ultima_actualizacion DateTime?       @db.DateTime
+  mc004_categoria            mc004_categoria @relation(fields: [mc005_empresa, mc005_id_categori], references: [mc004_empresa, mc004_id], onUpdate: NoAction, map: "mc005_subcategoria_mc004_categoria_FK")
+
+  @@id([mc005_empresa, mc005_id_categori, mc005_id], map: "mc005_subcategoria_PK")
+}
+
+model mc006_productos {
+  mc006_rowid               Int                   @id(map: "mc006_productos_PK")
+  mc006_empresa             Int
+  mc006_id                  Int?
+  mc006_referencia          String?               @db.VarChar(40)
+  mc006_descripcion         String?               @db.VarChar(80)
+  mc006_descripcion_corta   String?               @db.VarChar(20)
+  mc006_tipo_inventario     Int?
+  mc006_unidad_medida       String                @db.VarChar(5)
+  mc006_unidad_orden        String?               @db.VarChar(5)
+  mc006_unidad_adicional    String?               @db.VarChar(5)
+  mc006_id_caracteristica1  String?               @db.Char(2)
+  mc006_id_caracteristica2  String?               @db.Char(2)
+  mc006_ind_compra          Int?                  @db.SmallInt
+  mc006_ind_venta           Int?                  @db.SmallInt
+  mc006_ind_lista_precio    Int?                  @db.SmallInt
+  mc006_fecha_actualizacion DateTime?             @db.DateTime
+  mc003_unidades_medida     mc003_unidades_medida @relation(fields: [mc006_empresa, mc006_unidad_medida], references: [mc003_empresa, mc003_id], onUpdate: NoAction, map: "mc006_productos_mc003_unidades_medida_FK")
+
+  @@unique([mc006_empresa, mc006_id], map: "mc006_productos__IDX")
+  @@unique([mc006_empresa, mc006_referencia], map: "mc006_productos__IDXv1")
+}
+
+model MG_Empresa {
+  Empresa            String      @id(map: "MG_Empresa_PK") @db.Char(5)
+  DescripcionEmpresa String      @db.VarChar(50)
+  MG_Modulo          MG_Modulo[]
+}
+
+model MG_Modulo {
+  MG_Empresa_Empresa String     @db.Char(5)
+  Modulo             String     @id(map: "MG_Modulo_PK") @db.VarChar(5)
+  DescripcionModulo  String     @db.VarChar(50)
+  MG_Empresa         MG_Empresa @relation(fields: [MG_Empresa_Empresa], references: [Empresa], onUpdate: NoAction, map: "MG_Modulo_MG_Empresa_FK")
+}
+
+model mg001_empresas {
+  mg001_id                  Int                         @id(map: "mg001_empresas_PK")
+  mg001_razon_social        String?                     @db.VarChar(100)
+  mg001_nit                 String?                     @db.VarChar(15)
+  mg001_estado              Int?                        @db.SmallInt
+  mg001_direccion           String?                     @db.VarChar(100)
+  mg001_telefono            String?                     @db.VarChar(20)
+  mg001_celular             String?                     @db.VarChar(20)
+  mg001_pais                Int?
+  mc001_tipos_inventario    mc001_tipos_inventario[]
+  mc002_bodegas             mc002_bodegas[]
+  mc003_unidades_medida     mc003_unidades_medida[]
+  mc004_categoria           mc004_categoria[]
+  mg002_centro_operacion    mg002_centro_operacion[]
+  mg004_tipo_identificacion mg004_tipo_identificacion[]
+  mg005_Tercero             mg005_Tercero[]
+  mg006_tipo_cliente        mg006_tipo_cliente[]
+  mg007_clientes            mg007_clientes[]
+  mg013_proveedores         mg013_proveedores[]
+}
+
+model mg002_centro_operacion {
+  mg002_id_empresa  Int
+  mg002_id          String         @db.VarChar(3)
+  mg002_descripcion String?        @db.VarChar(50)
+  mg002_estado      Int?           @db.SmallInt
+  mg001_empresas    mg001_empresas @relation(fields: [mg002_id_empresa], references: [mg001_id], onUpdate: NoAction, map: "mg002_centro_operacion_mg001_empresas_FK")
+
+  @@id([mg002_id, mg002_id_empresa], map: "mg002_centro_operacion_PK")
+}
+
+model mg003_unidad_negocio {
+  mg003_id          String  @id(map: "mg003_unidad_negocio_PK") @db.VarChar(20)
+  mg003_descripcion String? @db.VarChar(50)
+  mg003_estado      Int?    @db.SmallInt
+}
+
+model mg004_tipo_identificacion {
+  mg004_rowid       Int             @id(map: "mg004_tipo_identificacion_PK") @default(autoincrement())
+  mg004_id          String          @db.VarChar(5)
+  mg004_id_empresa  Int
+  mg004_descripcion String?         @db.VarChar(40)
+  mg001_empresas    mg001_empresas  @relation(fields: [mg004_id_empresa], references: [mg001_id], onUpdate: NoAction, map: "mg004_tipo_identificacion_mg001_empresas_FK")
+  mg005_Tercero     mg005_Tercero[]
+}
+
+model mg005_Tercero {
+  mg005_rowid                Int                       @id(map: "mg005_Tercero_PK") @default(autoincrement())
+  mg005_id                   Int
+  mg005_id_empresa           Int
+  mg005_nit                  Int
+  mg005_dv                   Int
+  mg005_tipoIdent            Int
+  mg005_tipoTercero          Int?
+  mg005_razon_social         String                    @db.VarChar(120)
+  mg005_nombres              String?                   @db.VarChar(50)
+  mg005_primer_apellido      String?                   @db.VarChar(50)
+  mg005_segundo_apellido     String?                   @db.VarChar(50)
+  mg005_empleado             Boolean?
+  mg005_proveedor            Boolean
+  mg005_cliente              Boolean
+  mg005_otro                 Boolean?
+  mg005_fecha_nacimiento     DateTime?                 @db.Date
+  mg005_rowid_contacto       Int
+  mg005_estado               Int
+  mg005_ultima_actualizacion DateTime?                 @db.Date
+  mg001_empresas             mg001_empresas            @relation(fields: [mg005_id_empresa], references: [mg001_id], onUpdate: NoAction, map: "mg005_Tercero_mg001_empresas_FK")
+  mg004_tipo_identificacion  mg004_tipo_identificacion @relation(fields: [mg005_tipoIdent], references: [mg004_rowid], onUpdate: NoAction, map: "mg005_Tercero_mg004_tipo_identificacion_FK")
+  mg008_contactos            mg008_contactos           @relation(fields: [mg005_rowid_contacto], references: [mg008_rowid], onUpdate: NoAction, map: "mg005_Tercero_mg008_contactos_FK")
+  mg015_tipo_tercero         mg015_tipo_tercero?       @relation(fields: [mg005_tipoTercero], references: [mg015_id], onDelete: NoAction, onUpdate: NoAction, map: "mg005_Tercero_mg015_tipo_tercero_FK")
+  mg007_clientes             mg007_clientes[]
+}
+
+model mg006_tipo_cliente {
+  mg006_id_empresa  Int
+  mg006_id          Int              @unique(map: "mg006_tipo_cliente__IDX")
+  mg006_descripcion String?          @db.VarChar(50)
+  mg006_estado      Int?
+  mg001_empresas    mg001_empresas   @relation(fields: [mg006_id_empresa], references: [mg001_id], onUpdate: NoAction, map: "mg006_tipo_cliente_mg001_empresas_FK")
+  mg007_clientes    mg007_clientes[]
+
+  @@id([mg006_id_empresa, mg006_id], map: "mg006_tipo_cliente_PK")
+}
+
+model mg007_clientes {
+  mg007_rowid                 Int                @id(map: "Clientes_PK") @default(autoincrement())
+  mg007_empresa               Int
+  mg007_id_cliente            String?            @db.VarChar(3)
+  mg007_rowid_tercero         Int
+  mg007_rowid_vendedor        Int
+  mg007_cupo_credito          Float              @db.Money
+  mg007_bloqueo_cupo          Boolean?
+  mg007_fecha_cupo            DateTime?          @db.Date
+  mg007_condicion_pago        String?            @db.VarChar(5)
+  mg007_rowid_tipo_cliente    Int
+  mg007_lista_precio          Int?
+  mg007_fecha_ingreso         DateTime?          @db.Date
+  mg007_estado                Int?
+  mg007_rowid_cobrador        Int?
+  mg007_ultima_actualizacion  Int
+  mg007_rowid_contacto        Int
+  mg006_tipo_cliente_mg006_id Int
+  mg007_id_pais               String?            @db.Char(3)
+  mg007_id_dpto               String?            @db.Char(2)
+  mg007_id_municipio          String?            @db.VarChar(3)
+  mg001_empresas              mg001_empresas     @relation(fields: [mg007_empresa], references: [mg001_id], onUpdate: NoAction, map: "mg007_clientes_mg001_empresas_FK")
+  mg005_Tercero               mg005_Tercero      @relation(fields: [mg007_rowid_tercero], references: [mg005_rowid], onUpdate: NoAction, map: "mg007_clientes_mg005_Tercero_FK")
+  mg006_tipo_cliente          mg006_tipo_cliente @relation(fields: [mg007_rowid_tipo_cliente, mg006_tipo_cliente_mg006_id], references: [mg006_id_empresa, mg006_id], onUpdate: NoAction, map: "mg007_clientes_mg006_tipo_cliente_FK")
+  mg008_contactos             mg008_contactos    @relation(fields: [mg007_rowid_contacto], references: [mg008_rowid], onUpdate: NoAction, map: "mg007_clientes_mg008_contactos_FK")
+}
+
+model mg008_contactos {
+  mg008_rowid               Int              @id(map: "mg008_contactos_PK") @default(autoincrement())
+  mg008_id_empresa          Int?
+  mg008_descripcion         String?          @db.VarChar(100)
+  mg008_direccion_1         String?          @db.VarChar(80)
+  mg008_direccion_2         String?          @db.VarChar(80)
+  mg008_direccion_3         String?          @db.VarChar(80)
+  mg008_telefono            String?          @db.VarChar(20)
+  mg008_fax                 String?          @db.VarChar(20)
+  mg008_celular             String?          @db.VarChar(20)
+  mg008_email               String?          @db.VarChar(255)
+  mg008_id_barrio           String?          @db.VarChar(40)
+  mg008_utima_actualizacion DateTime?        @db.DateTime
+  mg008_id_pais             Int
+  mg008_departamento        String           @db.Char(2)
+  mg008_id_municipio        String           @db.Char(3)
+  mg005_Tercero             mg005_Tercero[]
+  mg007_clientes            mg007_clientes[]
+  mg012_municipios          mg012_municipios @relation(fields: [mg008_id_pais, mg008_departamento, mg008_id_municipio], references: [mg012_id_pais, mg012_id_departamento, mg012_id], onUpdate: NoAction, map: "mg008_contactos_mg012_municipios_FK")
+}
+
+model mg009_tipo_proveedor {
+  mg009_id_empresa  Int
+  mg009_id          Int
+  mg009_descripcion String?             @db.VarChar(80)
+  mg013_proveedores mg013_proveedores[]
+
+  @@id([mg009_id_empresa, mg009_id], map: "mg009_tipo_proveedor_PK")
+}
+
+model mg010_paises {
+  mg010_id          Int                @id(map: "mg010_paises_PK") @default(autoincrement())
+  mg010_codigo      String             @db.Char(3)
+  mg010_descripcion String?            @db.VarChar(50)
+  mg012_municipios  mg012_municipios[]
+}
+
+model mg011_departamentos {
+  mg011_id_pais     Int
+  mg011_id          String             @db.Char(2)
+  mg011_descripcion String?            @db.VarChar(50)
+  mg012_municipios  mg012_municipios[]
+
+  @@id([mg011_id, mg011_id_pais], map: "mg011_departamentos_PK")
+}
+
+model mg012_municipios {
+  mg012_id_pais         Int
+  mg012_id_departamento String              @db.Char(2)
+  mg012_id              String              @db.Char(3)
+  mg012_descripcion     String?             @db.VarChar(50)
+  mg008_contactos       mg008_contactos[]
+  mg010_paises          mg010_paises        @relation(fields: [mg012_id_pais], references: [mg010_id], onUpdate: NoAction, map: "mg012_municipios_mg010_paises_FK")
+  mg011_departamentos   mg011_departamentos @relation(fields: [mg012_id_departamento, mg012_id_pais], references: [mg011_id, mg011_id_pais], onUpdate: NoAction, map: "mg012_municipios_mg011_departamentos_FK")
+
+  @@id([mg012_id_pais, mg012_id_departamento, mg012_id], map: "mg012_municipios_PK")
+}
+
+model mg013_proveedores {
+  mg013_rowid                Int                  @id(map: "mg013_proveedores_PK") @default(autoincrement())
+  mg013_id_empresa           Int
+  mg013_id_proveedor         String?              @db.VarChar(3)
+  mg013_descripcion          String?              @db.VarChar(50)
+  mg013_rowid_contacto       Int?
+  mg013_tipo_proveedor       Int
+  mg013_condicion_pago       Int?
+  mg013_cupo_credito         Decimal?             @db.Decimal(28, 0)
+  mg013_dias_gracia          Int?
+  mg013_ultima_actualizacion DateTime?            @db.DateTime
+  mg001_empresas             mg001_empresas       @relation(fields: [mg013_id_empresa], references: [mg001_id], onUpdate: NoAction, map: "mg013_proveedores_mg001_empresas_FK")
+  mg009_tipo_proveedor       mg009_tipo_proveedor @relation(fields: [mg013_id_empresa, mg013_tipo_proveedor], references: [mg009_id_empresa, mg009_id], onUpdate: NoAction, map: "mg013_proveedores_mg009_tipo_proveedor_FK")
+}
+
+model mg014_centro_costos {
+  mg014_rowid       Int     @id(map: "mg014_centro_costos_PK") @default(autoincrement())
+  mg014_empresa     Int?
+  mg014_id          String? @db.VarChar(15)
+  mg014_descripcion String? @db.VarChar(80)
+  mg014_estado      Int?
+}
+
+model mg015_tipo_tercero {
+  mg015_id          Int             @id(map: "mg015_tipo_tercero_PK")
+  mg015_descripcion String?         @db.VarChar(30)
+  mg005_Tercero     mg005_Tercero[]
+}
+
+model Noticia {
+  NoticiaID   Int       @id(map: "PK__Noticia__F33000EF96747640") @default(autoincrement())
+  Titulo      String?   @db.VarChar(120)
+  Descripcion String?   @db.VarChar(200)
+  Contenido   String?   @db.VarChar(Max)
+  Fecha       DateTime? @db.DateTime
+  AutorID     Int?
+}
+
+model sysdiagrams {
+  name         String @db.NVarChar(128)
+  principal_id Int
+  diagram_id   Int    @id(map: "PK__sysdiagr__C2B05B61A25B282D") @default(autoincrement())
+  version      Int?
+  definition   Bytes?
+
+  @@unique([principal_id, name], map: "UK_principal_name")
+}
