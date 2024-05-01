@@ -13,7 +13,7 @@ export default async function handler(
       const empresas = await prisma.mg001_empresas.findMany();
       return res.status(200).json(empresas);
     }
-  } catch (error) {
+  } catch (error) { 
     console.log('Error: ', error);
     return res.status(500).json(error as error);
   }
